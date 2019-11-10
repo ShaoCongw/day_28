@@ -41,16 +41,18 @@
 </head>
 <body onload="makeFocus()">
 	<div class="wrapper">
-    <input id="email-input" type="text">
+    <input id="email-input" type="text" value="1459151039@qq.com">
+    <button>现在就发送给最爱的她</button>
     <ul id="email-sug-wrapper" class="email-sug">
     	
     </ul>
-    
+  
     <script type="text/javascript">
     	var postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
     	var selectIndex = 0;
     	const emailInput = document.getElementById("email-input");
     	const emailSugWrapper = document.getElementById("email-sug-wrapper");
+    	const button = document.querySelector("button");
 		emailInput.oninput = function() {
 		    // 获取用户输入，生成提示框中的提示内容，将提示内容添加到email-sug-wrapper中
 		    // 控制email-sug-wrapper的显示/隐藏状态
@@ -59,7 +61,11 @@
 		    addTips();
 		    
 		}
-
+		button.onclick = function(){
+			var a = document.createElement("a");
+			a.setAttribute("href","mailto:" + emailInput.value);
+			a.click();
+		}
 		function getEmail() {
 		    var input = emailInput.value.trim();
 		    
