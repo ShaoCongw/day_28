@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>给心爱的人发个邮件吧</title>
+	<style type="text/css">
+		* {
+			box-sizing: border-box;
+		}
+		input {
+			width: 200px;
+			margin-bottom: 0;
+			
+		}
+		ul {
+
+			list-style-type: none;
+			padding:0;
+			margin:0;
+			width: 200px;
+			
+		}
+		li {
+			padding: 5px;
+			border-left: 1px solid #000;
+			border-right: 1px solid #000;
+			border-bottom: 1px solid #000;	
+		}
+		li:hover{
+			background-color: #F47378;
+			color: #fff;
+			cursor: pointer;
+		}
+		.active {
+			background-color: #7A81DE;
+			color: #fff;
+			
+		}
+		
+	</style>
+</head>
+<body onload="makeFocus()">
+	<div class="wrapper">
+    <input id="email-input" type="text">
+    <ul id="email-sug-wrapper" class="email-sug">
+    	
+    </ul>
+    
+    <script type="text/javascript">
+    	var postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
+    	var selectIndex = 0;
+    	const emailInput = document.getElementById("email-input");
+    	const emailSugWrapper = document.getElementById("email-sug-wrapper");
+		emailInput.oninput = function() {
+		    // 获取用户输入，生成提示框中的提示内容，将提示内容添加到email-sug-wrapper中
+		    // 控制email-sug-wrapper的显示/隐藏状态
+
+		    displayConrtol();
+		    addTips();
+		    
+		}
+
+		function getEmail() {
+		    var input = emailInput.value.trim();
+		    
+		    return input;
+		}
+		
+
+		function getTips() {
+		    // 获取用户输入
+		    // 遍历postfixList {
+		    //     把用户输入和每一个postfix进行结合成为每一个Li
+		    // }
+		    // 返回生成的提示内容
+		    var email = getEmail();
+		    var patt = "";
+		    //对特殊字符编码
+		    email = HtmlUtil.htmlEncode(email);
+		    //匹配@字符之后的内容
+		    if(email.indexOf("@")!=-1){
+		    	var index = email.indexOf("@");
+		    	patt = email.substring(index+1);
+		    	email = email.substring(0,index);
+		    }
+			console.log(patt);
+		    var liList = new Array();
+		    for (var x in postfixList) {
+		    	if (postfixList[x].indexOf(patt) == 0) {
+		    		var li  = document.createElement("li");
+		    		li.innerHTML = email + "@" + postfixList[x];
+		    		liList.push(li);
+		    	}
+		    }	
+		 	if(liList.length == 0){
+		 		for (var x in postfixList) {
+		    		var li  = document.createElement("li");
+		    		li.innerHTML = email + "@" + postfixList[x];
+		    		liList.push(li);
+		    	
+		    	}
+		 	}
+		    return liList;
+		}
+
+		function addTips() {
+		    // 获取生成提示框中的提示内容
+		    // 将内容添加到email-sug-wrapper中
+		    var childNodes = emailSugWrapper.querySelectorAll("li");
+		    for (var i =0 ; i < childNodes.length ; i++) {
+		    	emailSugWrapper.removeChild(childNodes[i]);
+		    }
+		    var tips = getTips();
+		    for (var index in tips) {
+		    	if (index == 0) {
+		    		selectIndex = 0;
+		    		tips[index].setAttribute("class","active");
+
+
+		    	}
+		    	emailSugWrapper.appendChild(tips[index]);
+		    }
+		}
+
+		function displayConrtol() {
+		    if (getEmail() == "") {
+		        hiddenTips();
+		        return;
+		    } else {
+		        displayTips();
+		    }
+		}
+
+		function hiddenTips() {
+		    emailSugWrapper.style.display = "none";
+		}
+
+		function displayTips() {
+		    // 做具体显示提示框的操作
+		    emailSugWrapper.style.display = "block";
+		}
+
+		//输入框获取焦点
+		function makeFocus(){
+			emailInput.focus();
+		}
+
+		//li点击事件,事件委托
+		emailSugWrapper.onclick = function(e){
+			var ev = e || window.event;
+			if(ev.target.nodeName.toLowerCase() == "li"){
+				//特殊字符译码
+				emailInput.value = HtmlUtil.htmlDecode(ev.target.innerHTML);
+				makeFocus();
+				hiddenTips();
+			}
+		}
+
+		//监听回车键，上下键
+		document.onkeydown = function(event) {
+			var keyCode = event.keyCode;
+			var childNodes = emailSugWrapper.querySelectorAll("li");
+			switch(keyCode){
+				//回车
+				case 13:
+					emailInput.value = HtmlUtil.htmlDecode(childNodes[selectIndex].innerHTML);
+					makeFocus();
+					hiddenTips();
+					break;
+				//上箭头	
+				case 38:
+					childNodes[selectIndex].setAttribute("class","");
+					if (selectIndex == 0) {
+						selectIndex = childNodes.length-1;
+					}else{
+						selectIndex--;
+					}
+					childNodes[selectIndex].setAttribute("class","active");
+					break;
+				//下箭头	
+				case 40:
+					childNodes[selectIndex].setAttribute("class","");
+					if (selectIndex == childNodes.length-1) {
+						selectIndex = 0;
+					}else{
+						selectIndex++;
+					}
+					childNodes[selectIndex].setAttribute("class","active");
+					break;
+				case 27:
+					makeFocus();
+					emailInput.select();
+					document.execCommand("copy");			
+
+			}
+		}
+
+		//解码库
+		var HtmlUtil = {
+        /*1.用浏览器内部转换器实现html转码*/
+        htmlEncode:function (html){
+            //1.首先动态创建一个容器标签元素，如DIV
+            var temp = document.createElement ("div");
+            //2.然后将要转换的字符串设置为这个元素的innerText(ie支持)或者textContent(火狐，google支持)
+            (temp.textContent != undefined ) ? (temp.textContent = html) : (temp.innerText = html);
+            //3.最后返回这个元素的innerHTML，即得到经过HTML编码转换的字符串了
+            var output = temp.innerHTML;
+            temp = null;
+            return output;
+        },
+        /*2.用浏览器内部转换器实现html解码*/
+        htmlDecode:function (text){
+            //1.首先动态创建一个容器标签元素，如DIV
+            var temp = document.createElement("div");
+            //2.然后将要转换的字符串设置为这个元素的innerHTML(ie，火狐，google都支持)
+            temp.innerHTML = text;
+            //3.最后返回这个元素的innerText(ie支持)或者textContent(火狐，google支持)，即得到经过HTML解码的字符串了。
+            var output = temp.innerText || temp.textContent;
+            temp = null;
+            return output;
+        },
+        /*3.用正则表达式实现html转码*/
+        htmlEncodeByRegExp:function (str){ 
+             var s = "";
+             if(str.length == 0) return "";
+             s = str.replace(/&/g,"&");
+             s = s.replace(/</g,"<");
+             s = s.replace(/>/g,">");
+             s = s.replace(/ /g," ");
+             s = s.replace(/\'/g,"'");
+             s = s.replace(/\"/g,'"');
+             return s; 
+       },
+       /*4.用正则表达式实现html解码*/
+       htmlDecodeByRegExp:function (str){ 
+             var s = "";
+             if(str.length == 0) return "";
+             s = str.replace(/&/g,"&");
+             s = s.replace(/</g,"<");
+             s = s.replace(/>/g,">");
+             s = s.replace(/ /g," ");
+             s = s.replace(/'/g,"\'");
+            
+             return s; 
+       }
+    };
+    </script>
+</div>
+</body>
+</html>
